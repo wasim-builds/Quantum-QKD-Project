@@ -160,6 +160,14 @@ The physical source of the errors modeled in our simulation derives from finite 
 \section{Integrating Quantum Error Correction (QEC)}\label{sec:qec}
 To push QKD beyond the strict distance limitations imposed by fiber-optic attenuation, future networks must utilize Quantum Repeaters. Unlike classical repeaters, quantum repeaters cannot simply measure and amplify the signal due to the No-Cloning theorem. Instead, they must utilize Quantum Error Correction (QEC) and Entanglement Swapping. While B92 is a prepare-and-measure protocol, integrating it into a fault-tolerant network would require encoding the logical $|0\rangle_L$ and $|+\rangle_L$ states across multiple physical qubits.
 
+\section{Research Gaps and Future Directions}\label{sec:gaps}
+While our simulations successfully map the theoretical bounds of the B92 protocol under depolarizing and phase-damping noise, several critical research gaps remain unaddressed in the current literature, presenting avenues for future work:
+\begin{enumerate}
+    \item \textbf{Photon-Number Splitting (PNS) Attacks:} Our simulation assumes ideal single-photon sources. In reality, attenuated lasers often emit multi-photon pulses. While decoy-state protocols have been heavily researched for BB84 to thwart PNS attacks, decoy-state integration for B92 remains mathematically underdeveloped and poorly simulated on NISQ frameworks.
+    \item \textbf{Hardware-Specific Error Topologies:} Our noise model applies uniform depolarizing errors. However, real-world superconducting chips exhibit highly correlated cross-talk and topologically dependent error rates. Future research must map B92 simulations to the specific heavy-hex coupling maps of modern quantum processors (e.g., IBM Eagle or Heron architectures).
+    \item \textbf{Finite-Key Analysis:} The asymptotic SKR derived in Section \ref{sec:postprocessing} assumes an infinitely long key exchange. For practical QKD, the statistical fluctuations in finite-length key blocks severely reduce the secure key rate. Expanding the classical post-processing simulation to account for finite-key effects in B92 is a critical open problem.
+\end{enumerate}
+
 \section{Conclusion}\label{sec:conclusion}
 The B92 protocol offers a streamlined alternative to BB84 by relying solely on two non-orthogonal states. Through our comprehensive Qiskit simulations, we successfully demonstrated its theoretical robustness against Intercept-Resend eavesdropping. We mathematically proved and simulated its 33.3\% eavesdropping error floor. Furthermore, we modeled classical post-processing to derive the Secret Key Rate (SKR) bounds under heavy environmental decoherence. Future work will explore advanced Quantum Error Correction (QEC) integration into B92 to elevate its resilience on physical quantum hardware.
 
