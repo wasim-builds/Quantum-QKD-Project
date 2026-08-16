@@ -108,6 +108,42 @@ When environmental noise is introduced, the baseline QBER (without an eavesdropp
 \label{fig:qber}
 \end{figure}
 
+\section{Post-Processing: Information Reconciliation and Privacy Amplification}\label{sec:postprocessing}
+While the physical exchange of quantum states guarantees the detection of an eavesdropper, a realistic QKD system must also correct natural environmental errors and distill a perfectly secret key. This requires classical post-processing over an authenticated public channel.
+
+\subsection{Information Reconciliation (Cascade Protocol)}
+Even in the absence of Eve, the raw sifted key will contain errors due to depolarizing noise. To correct these without exposing the key, Alice and Bob employ the Cascade protocol. Cascade operates by recursively shuffling the key bits into blocks and comparing the parity of these blocks. If a parity mismatch is detected, a binary search (bisecting the block) is performed to locate and correct the erroneous bit. 
+
+Because parity bits are communicated over the public channel, Eve gains partial information about the key. The amount of information Eve gains is theoretically upper-bounded by Shannon's binary entropy function:
+\begin{equation}
+H(e) = -e \log_2(e) - (1-e) \log_2(1-e)
+\end{equation}
+where $e$ is the QBER. If the QBER approaches 33.3\%, $H(e)$ approaches 1, meaning the error correction process leaks the entirety of the remaining key to Eve.
+
+\subsection{Privacy Amplification}
+Once Alice and Bob share an identical, error-free key, they must erase any partial information Eve may have gathered (either through her 33.3\% error-inducing Intercept-Resend attacks or by listening to the Cascade parity bits). 
+They achieve this using 2-Universal Hashing. By feeding their $N$-bit reconciled key into a randomly chosen universal hash function, they compress it into a shorter $K$-bit final secret key. The length of the final key is determined by the Leftover Hash Lemma, which guarantees that Eve's mutual information with the final key is exponentially small, achieving unconditional security.
+
+\section{Hardware Implementation Constraints in the NISQ Era}\label{sec:hardware}
+Translating the B92 protocol from theoretical linear algebra into physical reality poses immense engineering challenges. Our Qiskit simulations modeled the depolarizing and phase-damping noise, but these abstract mathematical models map directly to physical hardware limitations.
+
+\subsection{Superconducting Qubits vs. Photonics}
+Qiskit's default \texttt{AerSimulator} mimics the behavior of IBM's superconducting transmon qubits. While excellent for localized quantum computation, superconducting qubits operate at cryogenic temperatures (~15 millikelvin). This makes them inherently unsuited for long-distance QKD over optical fiber networks.
+
+Practical QKD systems overwhelmingly utilize photonics. In a photonic implementation of B92, the $|0\rangle$ and $|+\rangle$ states correspond to the polarization of single photons (e.g., rectilinear horizontal vs. diagonal +45 degree polarization). 
+
+\subsection{Coherence Times ($T_1$ and $T_2$)}
+The physical source of the errors modeled in our simulation derives from finite coherence times.
+\begin{itemize}
+    \item \textbf{$T_1$ Relaxation Time (Amplitude Damping):} The time it takes for a qubit in the excited $|1\rangle$ state to decay back to the ground $|0\rangle$ state by emitting energy into the environment.
+    \item \textbf{$T_2$ Dephasing Time (Phase Damping):} The time it takes for the relative phase between $|0\rangle$ and $|1\rangle$ to randomize. Because B92 relies on the $|+\rangle$ state (which requires strict phase coherence), a short $T_2$ time destroys the protocol's ability to transmit the diagonal basis, linearly driving up the QBER as demonstrated in our results (Fig. \ref{fig:qber}).
+\end{itemize}
+
+\section{Integrating Quantum Error Correction (QEC)}\label{sec:qec}
+To push QKD beyond the strict distance limitations imposed by fiber-optic attenuation (typically ~100km without trusted repeater nodes), future networks must utilize Quantum Repeaters. Unlike classical repeaters, quantum repeaters cannot simply measure and amplify the signal due to the No-Cloning theorem. 
+
+Instead, they must utilize Quantum Error Correction (QEC) and Entanglement Swapping. While B92 is a prepare-and-measure protocol, integrating it into a fault-tolerant network would require encoding the logical $|0\rangle_L$ and $|+\rangle_L$ states across multiple physical qubits. For example, the 7-qubit Steane Code or the surface code could protect the transmitted quantum information from the depolarizing channels simulated in Section \ref{sec:method}. However, the immense physical qubit overhead required for QEC remains the primary bottleneck preventing global quantum internets today.
+
 \section{Conclusion}\label{sec:conclusion}
 The B92 protocol offers a streamlined alternative to BB84 by relying solely on two non-orthogonal states. Through our comprehensive Qiskit simulations, we successfully demonstrated its theoretical robustness against Intercept-Resend eavesdropping. However, our noise models reveal that B92 is highly sensitive to depolarizing and phase errors. On real Noisy Intermediate-Scale Quantum (NISQ) devices, establishing a sufficiently pristine quantum channel is critical; otherwise, natural environmental decoherence will trigger the same abort thresholds designed to catch malicious eavesdroppers. Future work will explore advanced Quantum Error Correction (QEC) integration into B92 to elevate its resilience on physical quantum hardware.
 
