@@ -66,12 +66,11 @@ Because the states are non-orthogonal ($\langle 0 | + \rangle = \frac{1}{\sqrt{2
 
 If Bob measures in the $Z$ basis, a result of $|1\rangle$ implies with absolute certainty that Alice did not send $|0\rangle$. If he measures in the $X$ basis, a result of $|-\rangle$ implies Alice did not send $|+\rangle$. Bob's Positive Operator-Valued Measure (POVM) can be simplified to a success probability matrix. The probability of Bob measuring state $|j\rangle$ given Alice sent $|i\rangle$ is $P(j|i) = |\langle j | i \rangle|^2$. 
 
-The probability of Bob successfully making a conclusive measurement is:
+The probability of Bob successfully making a conclusive measurement is calculated by averaging over his basis choices. If Alice sends $|0\rangle$, Bob's Z-basis measurement yields $|0\rangle$ (inconclusive), while his X-basis measurement yields $|-\rangle$ with 50\% probability (conclusive). Thus:
 \begin{equation}
-P(\text{conclusive}) = \frac{1}{2} \times \frac{1}{2} + \frac{1}{2} \times \frac{1}{2} = \frac{1}{2}
+P(\text{conclusive}) = \frac{1}{2} (0) + \frac{1}{2} \left(\frac{1}{2}\right) = \frac{1}{4}
 \end{equation}
-meaning 50\% of the transmitted qubits are discarded during the sifting phase, assuming a perfect, noiseless channel.
-
+meaning 75\% of the transmitted qubits are discarded during the sifting phase, assuming a perfect, noiseless channel. This contrasts with BB84, which has a 50\% sifting efficiency.
 \subsection{Formalizing the Eavesdropper: Intercept and Resend}
 An eavesdropper (Eve) attempting to steal the key cannot perfectly copy the non-orthogonal qubits due to the No-Cloning theorem. Let us formalize her best naive strategy: the Intercept-Resend attack. 
 
@@ -82,11 +81,11 @@ Eve intercepts the state $|\psi_A\rangle$ and measures it in a randomly chosen b
 
 Eve then transmits this collapsed state $\rho_E$ to Bob. Because Eve is forced to guess the basis, she will guess incorrectly 50\% of the time. When she guesses incorrectly, she scrambles the state. For example, if Alice sends $|0\rangle$ and Eve measures in the $X$ basis, Eve's measurement yields $|+\rangle$ or $|-\rangle$ with equal probability. She then sends this state to Bob. If Bob correctly chooses the $X$ basis (to rule out $|0\rangle$), he now has a 50\% chance of erroneously measuring $|-\rangle$, which he will interpret as a conclusive indication that Alice sent $|+\rangle$, creating a bit error.
 
-The introduction of this error is quantifiable. The overall Quantum Bit Error Rate (QBER) introduced by a simple intercept-resend attack in B92 is theoretically given by:
+The introduction of this error is mathematically quantifiable. In BB84, a naive intercept-resend attack yields a 25\% Quantum Bit Error Rate (QBER). However, in B92, because the conclusive measurements depend heavily on non-orthogonal projections, the error dynamics change. If Alice sends $|0\rangle$ and Eve guesses the X basis, Eve collapses the state to $|+\rangle$ or $|-\rangle$. If she resends this collapsed state, Bob's subsequent measurements will yield conclusive but incorrect inferences with probability $1/8$, while his total probability of a conclusive measurement becomes $3/8$. The overall QBER introduced by a simple intercept-resend attack in B92 is therefore theoretically given by:
 \begin{equation}
-QBER_{Eve} = P(\text{Eve wrong basis}) \times P(\text{Bob conclusive on Eve's scrambled state}) = 25\%
+QBER_{Eve} = \frac{P(\text{Error})}{P(\text{Conclusive})} = \frac{1/8}{3/8} \approx 33.33\%
 \end{equation}
-This mathematically guarantees that Alice and Bob can detect Eve by comparing a subset of their sifted key and aborting if the QBER exceeds the channel's natural noise threshold.
+This mathematically guarantees that Alice and Bob can detect Eve by comparing a subset of their sifted key and aborting if the QBER exceeds the channel's natural noise threshold (typically bounded safely below 33.3\%).
 
 \section{Methodology: Qiskit Simulation}\label{sec:method}
 We simulate a $N$-bit key exchange using Qiskit. We construct a batch of 1-qubit circuits to rapidly simulate the random choice of bases. We introduce an \textit{Intercept-Resend} eavesdropper that randomly chooses to measure intercepted qubits in either the Z or X basis, immediately transmitting the collapsed post-measurement state to Bob. 
@@ -98,14 +97,14 @@ To model the physical realities of quantum transmission, we implement a custom N
 \end{enumerate}
 
 \section{Results and Analysis}\label{sec:results}
-The results demonstrate the sharp sensitivity of B92 to both eavesdropping and environmental noise. In a clean, noiseless channel, the Intercept-Resend attack introduces a theoretical 25\% QBER. Bob and Alice successfully detect the eavesdropper by comparing a small subset of their sifted key.
+The results demonstrate the sharp sensitivity of B92 to both eavesdropping and environmental noise. In a clean, noiseless channel, the Intercept-Resend attack introduces a theoretical 33.3\% QBER. Bob and Alice successfully detect the eavesdropper by comparing a small subset of their sifted key.
 
-When environmental noise is introduced, the baseline QBER (without an eavesdropper) scales linearly with the depolarizing probability. If the channel noise exceeds a 25\% error threshold, Alice and Bob can no longer mathematically distinguish between a naturally noisy channel and an active eavesdropper, forcing them to abort the protocol in either scenario to guarantee security.
+When environmental noise is introduced, the baseline QBER (without an eavesdropper) scales linearly with the depolarizing probability. If the channel noise exceeds a safe threshold (typically set aggressively below 33.3\%), Alice and Bob can no longer mathematically distinguish between a naturally noisy channel and an active eavesdropper, forcing them to abort the protocol in either scenario to guarantee security.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.48\textwidth]{../data/qber_noise_plot.png}
-\caption{Quantum Bit Error Rate (QBER) in the B92 protocol as a function of depolarizing and phase-damping noise. The presence of an Intercept-Resend eavesdropper adds an inherent ~25\% QBER floor, demonstrating the protocol's unconditional detection capabilities on pristine channels. At extreme noise levels, cryptographic distillation becomes impossible.}
+\caption{Quantum Bit Error Rate (QBER) in the B92 protocol as a function of depolarizing and phase-damping noise. The presence of an Intercept-Resend eavesdropper adds an inherent ~33.3\% QBER floor, demonstrating the protocol's unconditional detection capabilities on pristine channels. At extreme noise levels, cryptographic distillation becomes impossible.}
 \label{fig:qber}
 \end{figure}
 
