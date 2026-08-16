@@ -14,7 +14,7 @@
 
 \begin{document}
 
-\title{Simulating Eavesdropping Resilience and Noise Sensitivity in B92 Quantum Key Distribution using Qiskit}
+\title{Simulating Eavesdropping Resilience, Post-Processing, and Noise Sensitivity in B92 Quantum Key Distribution}
 
 \author{\IEEEauthorblockN{Mohammed Wasim Khan}
 \IEEEauthorblockA{\textit{School of Computer Science and Engineering} \\
@@ -26,33 +26,55 @@ wasim.21mis7125@vitapstudent.ac.in}
 \maketitle
 
 \begin{abstract}
-Quantum Key Distribution (QKD) leverages the fundamental principles of quantum mechanics to establish unconditionally secure cryptographic keys. While the BB84 protocol remains the most widely studied, the B92 protocol, proposed by Charles Bennett in 1992, simplifies the transmission to just two non-orthogonal quantum states. This reduction in state complexity makes B92 attractive for practical implementation but introduces unique vulnerabilities to noise and eavesdropping. In this paper, we utilize the IBM Qiskit framework to rigorously simulate the B92 QKD protocol. We construct the full quantum circuit for state preparation, transmission, and measurement. Crucially, we introduce an Intercept-Resend eavesdropping attack and evaluate the protocol's inherent detection mechanisms. Furthermore, we expand the simulation to incorporate realistic quantum channel noise, including depolarizing and phase-damping channels, demonstrating the threshold at which cryptographic security breaks down. Our simulated results bridge the gap between theoretical proofs of unconditional security and the engineering realities of Noisy Intermediate-Scale Quantum (NISQ) devices.
+Quantum Key Distribution (QKD) leverages the fundamental principles of quantum mechanics to establish unconditionally secure cryptographic keys. While the BB84 protocol remains the most widely studied, the B92 protocol simplifies the transmission to just two non-orthogonal quantum states. This reduction makes B92 attractive for practical implementation but introduces unique vulnerabilities to noise and eavesdropping. In this paper, we utilize the IBM Qiskit framework to rigorously simulate the B92 QKD protocol. We construct the full quantum circuit for state preparation and measurement, and introduce an Intercept-Resend eavesdropping attack. We mathematically prove that this attack introduces a 33.3\% Quantum Bit Error Rate (QBER) in B92. Furthermore, we expand the simulation to incorporate realistic quantum channel noise and model the classical post-processing phase, including the Cascade protocol and Privacy Amplification. Our results bridge the gap between theoretical proofs of unconditional security and the engineering realities of Noisy Intermediate-Scale Quantum (NISQ) devices, plotting the final Secret Key Rate (SKR) limits under realistic noise conditions.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Quantum Computing, Quantum Key Distribution, B92 Protocol, Qiskit, Eavesdropping, Cryptography, NISQ
+Quantum Computing, Quantum Key Distribution, B92 Protocol, Qiskit, Eavesdropping, Cryptography, Privacy Amplification, NISQ
 \end{IEEEkeywords}
 
 \section{Introduction}\label{sec1}
-The imminent arrival of cryptographically relevant quantum computers poses a severe threat to classical public-key cryptography, such as RSA and Elliptic Curve algorithms. In response, two parallel fields have emerged: Post-Quantum Cryptography (PQC), which relies on mathematically hard problems assumed to resist quantum attacks, and Quantum Cryptography, which uses the laws of physics to guarantee unconditional security. 
+The imminent arrival of cryptographically relevant quantum computers poses a severe threat to classical public-key cryptography, such as RSA and Elliptic Curve algorithms. In response, Quantum Cryptography uses the laws of physics—specifically the Heisenberg Uncertainty Principle and the No-Cloning Theorem—to guarantee unconditional security. 
 
-Quantum Key Distribution (QKD) \cite{gisin2002quantum} is the most mature application of quantum cryptography. The seminal BB84 protocol \cite{bennett1984quantum} established that measuring a quantum state disturbs it, a phenomenon guaranteed by the Heisenberg Uncertainty Principle and the No-Cloning Theorem. In 1992, Bennett \cite{bennett1992quantum} proposed a simplified version of QKD known as B92. Unlike BB84, which requires four states across two conjugate bases, B92 requires only two non-orthogonal states. 
+Quantum Key Distribution (QKD) is the most mature application of quantum cryptography. In 1992, Charles Bennett \cite{bennett1992quantum} proposed a simplified version of QKD known as B92. Unlike BB84, which requires four states across two conjugate bases, B92 requires only two non-orthogonal states. 
 
-While B92's theoretical simplicity is elegant, translating this protocol to physical hardware exposes it to environmental noise and sophisticated eavesdropping (Eve). In this paper, we leverage IBM's open-source framework, Qiskit \cite{qiskit}, to simulate the B92 protocol from the ground up. 
+While B92's theoretical simplicity is elegant, translating this protocol to physical hardware exposes it to environmental noise. In this paper, we leverage IBM's open-source framework, Qiskit \cite{qiskit}, to completely simulate the physical transmission, eavesdropping resilience, and classical post-processing of the B92 protocol.
 
-\section{Related Work}\label{sec:related}
-\subsection{The Evolution of Quantum Key Distribution}
-The foundation of quantum cryptography was laid by Wiesner in the 1970s with the concept of quantum conjugate coding, which Bennett and Brassard subsequently evolved into the famous BB84 protocol \cite{bennett1984quantum}. BB84 established the paradigm of using two conjugate bases (rectilinear and diagonal) and four states. While unconditionally secure, generating and distinguishing four distinct quantum states poses engineering challenges for optical setups. In 1992, Bennett introduced the B92 protocol \cite{bennett1992quantum}, demonstrating that only two non-orthogonal states are strictly necessary. This theoretical breakthrough shifted the burden from state preparation complexity to sophisticated, unambiguous state discrimination at the receiver. 
+\section{Related Work and Protocol Comparisons}\label{sec:related}
+\subsection{BB84 vs. B92 vs. E91}
+The BB84 protocol \cite{bennett1984quantum} established the paradigm of using two conjugate bases (rectilinear and diagonal) and four states. While unconditionally secure, generating and distinguishing four distinct quantum states poses engineering challenges for optical setups. B92 reduces this to two states, shifting the burden from state preparation complexity to sophisticated, unambiguous state discrimination at the receiver. 
 
-\subsection{Security Proofs and Eavesdropping}
-The unconditional security of QKD protocols relies on the laws of quantum mechanics, specifically the No-Cloning Theorem. Early security proofs by Mayers, Shor, and Preskill provided rigorous bounds on the allowable Quantum Bit Error Rate (QBER) for BB84. For B92, formal security proofs are mathematically more stringent. Gisin et al. \cite{gisin2002quantum} demonstrated that B92 is inherently more sensitive to channel loss and noise than BB84, establishing a theoretical abort threshold if the QBER exceeds a specific margin, as a malicious eavesdropper (Eve) cannot be distinguished from environmental noise beyond this point.
+In contrast, the E91 protocol utilizes quantum entanglement (Bell States). Rather than Alice preparing a state and sending it, a central source emits an entangled pair, sending one qubit to Alice and one to Bob. Security is guaranteed by verifying the violation of Bell's Inequality (CHSH inequality). While E91 provides device-independent security, generating and distributing stable entanglement over long distances is significantly more difficult than the prepare-and-measure approach of B92.
 
-\subsection{NISQ-Era Simulation}
-The current era of quantum computing, defined by Preskill as Noisy Intermediate-Scale Quantum (NISQ) technology, is characterized by qubits that suffer from rapid decoherence and gate infidelities. Frameworks like IBM's Qiskit \cite{qiskit} have democratized the ability to simulate and deploy quantum algorithms. While Qiskit is frequently used for algorithmic research (e.g., Grover's or Shor's algorithms), its powerful \texttt{qiskit\_aer.noise} module provides a unique opportunity to simulate cryptographic protocols under realistic hardware constraints, bridging the gap between theoretical physics and experimental cryptography.
+\subsection{Formal Security Proofs}
+Early security proofs by Mayers, Shor, and Preskill provided rigorous bounds on the allowable Quantum Bit Error Rate (QBER) for BB84. For B92, formal security proofs are mathematically more stringent. Gisin et al. \cite{gisin2002quantum} demonstrated that B92 is inherently more sensitive to channel loss and noise than BB84, establishing a theoretical abort threshold if the QBER exceeds a specific margin.
+
+\section{Mathematical Proof of the No-Cloning Theorem}\label{sec:nocloning}
+The security of B92 fundamentally relies on the No-Cloning Theorem, which states that it is impossible to create an identical copy of an arbitrary unknown quantum state.
+Assume there exists a unitary cloning operator $U$ such that:
+\begin{equation}
+U(|\psi\rangle \otimes |e\rangle) = |\psi\rangle \otimes |\psi\rangle
+\end{equation}
+where $|e\rangle$ is an initial blank state. If we have two arbitrary states $|\psi\rangle$ and $|\phi\rangle$:
+\begin{equation}
+U(|\psi\rangle \otimes |e\rangle) = |\psi\rangle \otimes |\psi\rangle
+\end{equation}
+\begin{equation}
+U(|\phi\rangle \otimes |e\rangle) = |\phi\rangle \otimes |\phi\rangle
+\end{equation}
+Taking the inner product of these two equations yields:
+\begin{equation}
+\langle \phi | \psi \rangle \langle e | e \rangle = \langle \phi | \psi \rangle \langle \phi | \psi \rangle
+\end{equation}
+Assuming $\langle e | e \rangle = 1$, we get:
+\begin{equation}
+\langle \phi | \psi \rangle = \langle \phi | \psi \rangle^2
+\end{equation}
+This equation is only satisfied if $\langle \phi | \psi \rangle = 1$ (the states are identical) or $\langle \phi | \psi \rangle = 0$ (the states are perfectly orthogonal). Because B92 utilizes \textit{non-orthogonal} states ($\langle 0 | + \rangle = 1/\sqrt{2}$), they cannot be cloned. Any attempt by an eavesdropper to copy the state will result in a deformed state, introducing detectable errors.
 
 \section{Theoretical Background and Mathematical Formulation}\label{sec2}
 \subsection{The B92 Protocol Mechanics}
-Alice prepares a stream of qubits, choosing randomly between two non-orthogonal states. Traditionally, these are the computational basis state $|0\rangle$ and the diagonal basis state $|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$. Let Alice's bit choice be denoted as $a \in \{0, 1\}$. Her prepared quantum state is:
+Alice prepares a stream of qubits, choosing randomly between two non-orthogonal states. Let Alice's bit choice be denoted as $a \in \{0, 1\}$. Her prepared quantum state is:
 \begin{equation}
 |\psi_A\rangle = 
 \begin{cases} 
@@ -62,30 +84,22 @@ Alice prepares a stream of qubits, choosing randomly between two non-orthogonal 
 \end{equation}
 
 Bob receives the qubit and must choose a measurement basis randomly, denoted as $b \in \{0, 1\}$. He measures in either the standard rectilinear basis $Z = \{|0\rangle, |1\rangle\}$ (if $b=0$) or the diagonal Hadamard basis $X = \{|+\rangle, |-\rangle\}$ (if $b=1$). 
-Because the states are non-orthogonal ($\langle 0 | + \rangle = \frac{1}{\sqrt{2}} \neq 0$), Bob cannot reliably distinguish between them with a single deterministic measurement. Instead, the protocol relies on unambiguous state discrimination. 
-
-If Bob measures in the $Z$ basis, a result of $|1\rangle$ implies with absolute certainty that Alice did not send $|0\rangle$. If he measures in the $X$ basis, a result of $|-\rangle$ implies Alice did not send $|+\rangle$. Bob's Positive Operator-Valued Measure (POVM) can be simplified to a success probability matrix. The probability of Bob measuring state $|j\rangle$ given Alice sent $|i\rangle$ is $P(j|i) = |\langle j | i \rangle|^2$. 
 
 The probability of Bob successfully making a conclusive measurement is calculated by averaging over his basis choices. If Alice sends $|0\rangle$, Bob's Z-basis measurement yields $|0\rangle$ (inconclusive), while his X-basis measurement yields $|-\rangle$ with 50\% probability (conclusive). Thus:
 \begin{equation}
 P(\text{conclusive}) = \frac{1}{2} (0) + \frac{1}{2} \left(\frac{1}{2}\right) = \frac{1}{4}
 \end{equation}
 meaning 75\% of the transmitted qubits are discarded during the sifting phase, assuming a perfect, noiseless channel. This contrasts with BB84, which has a 50\% sifting efficiency.
+
 \subsection{Formalizing the Eavesdropper: Intercept and Resend}
-An eavesdropper (Eve) attempting to steal the key cannot perfectly copy the non-orthogonal qubits due to the No-Cloning theorem. Let us formalize her best naive strategy: the Intercept-Resend attack. 
+An eavesdropper (Eve) intercepting the state $|\psi_A\rangle$ measures it in a randomly chosen basis $e \in \{0, 1\}$. Upon measurement, the state collapses to a new density matrix $\rho_E$.
+Because Eve is forced to guess the basis, she will guess incorrectly 50\% of the time. When she guesses incorrectly, she scrambles the state. For example, if Alice sends $|0\rangle$ and Eve measures in the $X$ basis, Eve's measurement yields $|+\rangle$ or $|-\rangle$ with equal probability. She then sends this state to Bob. 
 
-Eve intercepts the state $|\psi_A\rangle$ and measures it in a randomly chosen basis $e \in \{0, 1\}$. Let her measurement operators be $M_e$. Upon measurement, the state collapses to a new density matrix $\rho_E$:
-\begin{equation}
-\rho_E = \sum_k M_k |\psi_A\rangle \langle \psi_A | M_k^\dagger
-\end{equation}
-
-Eve then transmits this collapsed state $\rho_E$ to Bob. Because Eve is forced to guess the basis, she will guess incorrectly 50\% of the time. When she guesses incorrectly, she scrambles the state. For example, if Alice sends $|0\rangle$ and Eve measures in the $X$ basis, Eve's measurement yields $|+\rangle$ or $|-\rangle$ with equal probability. She then sends this state to Bob. If Bob correctly chooses the $X$ basis (to rule out $|0\rangle$), he now has a 50\% chance of erroneously measuring $|-\rangle$, which he will interpret as a conclusive indication that Alice sent $|+\rangle$, creating a bit error.
-
-The introduction of this error is mathematically quantifiable. In BB84, a naive intercept-resend attack yields a 25\% Quantum Bit Error Rate (QBER). However, in B92, because the conclusive measurements depend heavily on non-orthogonal projections, the error dynamics change. If Alice sends $|0\rangle$ and Eve guesses the X basis, Eve collapses the state to $|+\rangle$ or $|-\rangle$. If she resends this collapsed state, Bob's subsequent measurements will yield conclusive but incorrect inferences with probability $1/8$, while his total probability of a conclusive measurement becomes $3/8$. The overall QBER introduced by a simple intercept-resend attack in B92 is therefore theoretically given by:
+The introduction of this error is mathematically quantifiable. In B92, because the conclusive measurements depend heavily on non-orthogonal projections, the error dynamics change relative to BB84. If Alice sends $|0\rangle$ and Eve guesses the X basis, she resends the collapsed state. Bob's subsequent measurements will yield conclusive but incorrect inferences with probability $1/8$, while his total probability of a conclusive measurement becomes $3/8$. The overall QBER introduced by a simple intercept-resend attack in B92 is theoretically given by:
 \begin{equation}
 QBER_{Eve} = \frac{P(\text{Error})}{P(\text{Conclusive})} = \frac{1/8}{3/8} \approx 33.33\%
 \end{equation}
-This mathematically guarantees that Alice and Bob can detect Eve by comparing a subset of their sifted key and aborting if the QBER exceeds the channel's natural noise threshold (typically bounded safely below 33.3\%).
+This mathematically guarantees that Alice and Bob can detect Eve by comparing a subset of their sifted key and aborting if the QBER exceeds the channel's natural noise threshold (bounded safely below 33.3\%).
 
 \section{Methodology: Qiskit Simulation}\label{sec:method}
 We simulate a $N$-bit key exchange using Qiskit. We construct a batch of 1-qubit circuits to rapidly simulate the random choice of bases. We introduce an \textit{Intercept-Resend} eavesdropper that randomly chooses to measure intercepted qubits in either the Z or X basis, immediately transmitting the collapsed post-measurement state to Bob. 
@@ -96,15 +110,15 @@ To model the physical realities of quantum transmission, we implement a custom N
     \item \textbf{Phase Damping Error:} The relative phase between $|0\rangle$ and $|1\rangle$ is stochastically flipped, which severely impacts measurements in the Hadamard (X) basis.
 \end{enumerate}
 
-\section{Results and Analysis}\label{sec:results}
+\section{Simulation Results and Analysis}\label{sec:results}
 The results demonstrate the sharp sensitivity of B92 to both eavesdropping and environmental noise. In a clean, noiseless channel, the Intercept-Resend attack introduces a theoretical 33.3\% QBER. Bob and Alice successfully detect the eavesdropper by comparing a small subset of their sifted key.
 
-When environmental noise is introduced, the baseline QBER (without an eavesdropper) scales linearly with the depolarizing probability. If the channel noise exceeds a safe threshold (typically set aggressively below 33.3\%), Alice and Bob can no longer mathematically distinguish between a naturally noisy channel and an active eavesdropper, forcing them to abort the protocol in either scenario to guarantee security.
+When environmental noise is introduced, the baseline QBER scales linearly with the depolarizing probability. If the channel noise exceeds a safe threshold (typically set aggressively below 33.3\%), Alice and Bob can no longer mathematically distinguish between a naturally noisy channel and an active eavesdropper.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.48\textwidth]{../data/qber_noise_plot.png}
-\caption{Quantum Bit Error Rate (QBER) in the B92 protocol as a function of depolarizing and phase-damping noise. The presence of an Intercept-Resend eavesdropper adds an inherent ~33.3\% QBER floor, demonstrating the protocol's unconditional detection capabilities on pristine channels. At extreme noise levels, cryptographic distillation becomes impossible.}
+\caption{Quantum Bit Error Rate (QBER) in the B92 protocol as a function of depolarizing and phase-damping noise. The presence of an Intercept-Resend eavesdropper adds an inherent ~33.3\% QBER floor, demonstrating the protocol's unconditional detection capabilities on pristine channels.}
 \label{fig:qber}
 \end{figure}
 
@@ -112,7 +126,7 @@ When environmental noise is introduced, the baseline QBER (without an eavesdropp
 While the physical exchange of quantum states guarantees the detection of an eavesdropper, a realistic QKD system must also correct natural environmental errors and distill a perfectly secret key. This requires classical post-processing over an authenticated public channel.
 
 \subsection{Information Reconciliation (Cascade Protocol)}
-Even in the absence of Eve, the raw sifted key will contain errors due to depolarizing noise. To correct these without exposing the key, Alice and Bob employ the Cascade protocol. Cascade operates by recursively shuffling the key bits into blocks and comparing the parity of these blocks. If a parity mismatch is detected, a binary search (bisecting the block) is performed to locate and correct the erroneous bit. 
+Even in the absence of Eve, the raw sifted key will contain errors due to depolarizing noise. Alice and Bob employ the Cascade protocol, operating by recursively shuffling the key bits into blocks and comparing parity. If a parity mismatch is detected, a binary search is performed to locate and correct the erroneous bit. 
 
 Because parity bits are communicated over the public channel, Eve gains partial information about the key. The amount of information Eve gains is theoretically upper-bounded by Shannon's binary entropy function:
 \begin{equation}
@@ -120,32 +134,34 @@ H(e) = -e \log_2(e) - (1-e) \log_2(1-e)
 \end{equation}
 where $e$ is the QBER. If the QBER approaches 33.3\%, $H(e)$ approaches 1, meaning the error correction process leaks the entirety of the remaining key to Eve.
 
-\subsection{Privacy Amplification}
-Once Alice and Bob share an identical, error-free key, they must erase any partial information Eve may have gathered (either through her 33.3\% error-inducing Intercept-Resend attacks or by listening to the Cascade parity bits). 
-They achieve this using 2-Universal Hashing. By feeding their $N$-bit reconciled key into a randomly chosen universal hash function, they compress it into a shorter $K$-bit final secret key. The length of the final key is determined by the Leftover Hash Lemma, which guarantees that Eve's mutual information with the final key is exponentially small, achieving unconditional security.
+\subsection{Privacy Amplification and Secret Key Rate (SKR)}
+Once Alice and Bob share an identical, error-free key, they must erase any partial information Eve may have gathered. They achieve this using 2-Universal Hashing, compressing the key into a shorter, perfectly secure key. The Secret Key Rate (SKR) per sifted bit is given by:
+\begin{equation}
+SKR = 1 - f_{EC} H(e) - H(e)
+\end{equation}
+where $f_{EC} \approx 1.2$ is the inefficiency of the Cascade protocol.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.48\textwidth]{../data/skr_post_processing.png}
+\caption{Secret Key Rate (SKR) vs. Depolarizing Error Probability. The SKR rapidly falls to zero as the noise approaches the theoretical limits, demonstrating the necessity of low-noise channels for successful key distillation.}
+\label{fig:skr}
+\end{figure}
 
 \section{Hardware Implementation Constraints in the NISQ Era}\label{sec:hardware}
-Translating the B92 protocol from theoretical linear algebra into physical reality poses immense engineering challenges. Our Qiskit simulations modeled the depolarizing and phase-damping noise, but these abstract mathematical models map directly to physical hardware limitations.
-
-\subsection{Superconducting Qubits vs. Photonics}
-Qiskit's default \texttt{AerSimulator} mimics the behavior of IBM's superconducting transmon qubits. While excellent for localized quantum computation, superconducting qubits operate at cryogenic temperatures (~15 millikelvin). This makes them inherently unsuited for long-distance QKD over optical fiber networks.
-
-Practical QKD systems overwhelmingly utilize photonics. In a photonic implementation of B92, the $|0\rangle$ and $|+\rangle$ states correspond to the polarization of single photons (e.g., rectilinear horizontal vs. diagonal +45 degree polarization). 
-
+Translating the B92 protocol from theoretical linear algebra into physical reality poses immense engineering challenges. 
 \subsection{Coherence Times ($T_1$ and $T_2$)}
 The physical source of the errors modeled in our simulation derives from finite coherence times.
 \begin{itemize}
-    \item \textbf{$T_1$ Relaxation Time (Amplitude Damping):} The time it takes for a qubit in the excited $|1\rangle$ state to decay back to the ground $|0\rangle$ state by emitting energy into the environment.
-    \item \textbf{$T_2$ Dephasing Time (Phase Damping):} The time it takes for the relative phase between $|0\rangle$ and $|1\rangle$ to randomize. Because B92 relies on the $|+\rangle$ state (which requires strict phase coherence), a short $T_2$ time destroys the protocol's ability to transmit the diagonal basis, linearly driving up the QBER as demonstrated in our results (Fig. \ref{fig:qber}).
+    \item \textbf{$T_1$ Relaxation Time (Amplitude Damping):} The time it takes for a qubit in the excited $|1\rangle$ state to decay back to the ground $|0\rangle$ state.
+    \item \textbf{$T_2$ Dephasing Time (Phase Damping):} The time it takes for the relative phase between $|0\rangle$ and $|1\rangle$ to randomize. Because B92 relies on the $|+\rangle$ state (which requires strict phase coherence), a short $T_2$ time destroys the protocol's ability to transmit the diagonal basis, linearly driving up the QBER.
 \end{itemize}
 
 \section{Integrating Quantum Error Correction (QEC)}\label{sec:qec}
-To push QKD beyond the strict distance limitations imposed by fiber-optic attenuation (typically ~100km without trusted repeater nodes), future networks must utilize Quantum Repeaters. Unlike classical repeaters, quantum repeaters cannot simply measure and amplify the signal due to the No-Cloning theorem. 
-
-Instead, they must utilize Quantum Error Correction (QEC) and Entanglement Swapping. While B92 is a prepare-and-measure protocol, integrating it into a fault-tolerant network would require encoding the logical $|0\rangle_L$ and $|+\rangle_L$ states across multiple physical qubits. For example, the 7-qubit Steane Code or the surface code could protect the transmitted quantum information from the depolarizing channels simulated in Section \ref{sec:method}. However, the immense physical qubit overhead required for QEC remains the primary bottleneck preventing global quantum internets today.
+To push QKD beyond the strict distance limitations imposed by fiber-optic attenuation, future networks must utilize Quantum Repeaters. Unlike classical repeaters, quantum repeaters cannot simply measure and amplify the signal due to the No-Cloning theorem. Instead, they must utilize Quantum Error Correction (QEC) and Entanglement Swapping. While B92 is a prepare-and-measure protocol, integrating it into a fault-tolerant network would require encoding the logical $|0\rangle_L$ and $|+\rangle_L$ states across multiple physical qubits.
 
 \section{Conclusion}\label{sec:conclusion}
-The B92 protocol offers a streamlined alternative to BB84 by relying solely on two non-orthogonal states. Through our comprehensive Qiskit simulations, we successfully demonstrated its theoretical robustness against Intercept-Resend eavesdropping. However, our noise models reveal that B92 is highly sensitive to depolarizing and phase errors. On real Noisy Intermediate-Scale Quantum (NISQ) devices, establishing a sufficiently pristine quantum channel is critical; otherwise, natural environmental decoherence will trigger the same abort thresholds designed to catch malicious eavesdroppers. Future work will explore advanced Quantum Error Correction (QEC) integration into B92 to elevate its resilience on physical quantum hardware.
+The B92 protocol offers a streamlined alternative to BB84 by relying solely on two non-orthogonal states. Through our comprehensive Qiskit simulations, we successfully demonstrated its theoretical robustness against Intercept-Resend eavesdropping. We mathematically proved and simulated its 33.3\% eavesdropping error floor. Furthermore, we modeled classical post-processing to derive the Secret Key Rate (SKR) bounds under heavy environmental decoherence. Future work will explore advanced Quantum Error Correction (QEC) integration into B92 to elevate its resilience on physical quantum hardware.
 
 \bibliographystyle{IEEEtran}
 \bibliography{sn-bibliography}
