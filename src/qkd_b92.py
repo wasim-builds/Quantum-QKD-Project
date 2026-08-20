@@ -87,24 +87,35 @@ def run_b92_batch(num_bits: int = 500, eve_present: bool = False) -> tuple[int, 
 
 
 if __name__ == "__main__":
+    import tkinter as tk
+    from tkinter import messagebox
+
     N = 500
 
-    print(f"[*] B92 Protocol Simulation (N={N} bits, seed={SEED})")
-    print("=" * 55)
+    out = f"[*] B92 Protocol Simulation (N={N} bits, seed={SEED})\n"
+    out += "=" * 55 + "\n"
 
-    print(f"\n[*] Running WITHOUT Eavesdropper...")
+    out += f"\n[*] Running WITHOUT Eavesdropper...\n"
     length_clean, qber_clean = run_b92_batch(num_bits=N, eve_present=False)
-    print(f"    Sifted Key Length : {length_clean}")
-    print(f"    QBER              : {qber_clean:.2f}%")
+    out += f"    Sifted Key Length : {length_clean}\n"
+    out += f"    QBER              : {qber_clean:.2f}%\n"
 
-    print(f"\n[*] Running WITH Intercept-Resend Eavesdropper (Eve)...")
+    out += f"\n[*] Running WITH Intercept-Resend Eavesdropper (Eve)...\n"
     length_eve, qber_eve = run_b92_batch(num_bits=N, eve_present=True)
-    print(f"    Sifted Key Length : {length_eve}")
-    print(f"    QBER              : {qber_eve:.2f}%")
+    out += f"    Sifted Key Length : {length_eve}\n"
+    out += f"    QBER              : {qber_eve:.2f}%\n"
 
-    print(f"\n[*] Theoretical Prediction: QBER_Eve ~ 33.33%")
+    out += f"\n[*] Theoretical Prediction: QBER_Eve ~ 33.33%\n"
 
     if qber_eve > 25.0:
-        print("\n[!] HIGH QBER DETECTED! Eavesdropper presence confirmed. Aborting key exchange.")
+        out += "\n[!] HIGH QBER DETECTED! Eavesdropper presence confirmed. Aborting key exchange."
     else:
-        print("\n[+] QBER within acceptable limits. Channel appears clean.")
+        out += "\n[+] QBER within acceptable limits. Channel appears clean."
+        
+    print(out)
+    
+    # Create pop-up window
+    root = tk.Tk()
+    root.withdraw() # Hide the main window
+    messagebox.showinfo("B92 Simulation Results", out)
+    root.destroy()

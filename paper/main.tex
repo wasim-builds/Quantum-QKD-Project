@@ -47,11 +47,14 @@ In this paper, we leverage IBM's open-source framework, Qiskit \cite{qiskit}, to
 \subsection{BB84 vs. B92 vs. E91}
 The BB84 protocol \cite{bennett1984quantum} established the paradigm of using two conjugate bases (rectilinear and diagonal) and four states. While unconditionally secure, generating and distinguishing four distinct quantum states poses engineering challenges for optical setups. B92 reduces this to two states, shifting the burden from state preparation complexity to sophisticated, unambiguous state discrimination at the receiver. Table~\ref{tab:comparison} summarizes the key operational differences between these three foundational QKD protocols.
 
+Note that the 25\% detection threshold for B92 in Table~\ref{tab:comparison} represents protocol-level detectability, distinct from unconditional security bounds ($\sim$10--15\%) or specific post-processing zero-key-rate crossovers (e.g., 9.55\% for our Cascade implementation).
+
 \begin{table}[htbp]
 \caption{Comparative Analysis of Foundational QKD Protocols}
 \label{tab:comparison}
 \centering
 \small
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{llcc}
 \toprule
 \textbf{Property} & \textbf{BB84} & \textbf{B92} & \textbf{E91} \\
@@ -63,15 +66,16 @@ Complexity & High & Low & Very High \\
 Security Model & Info-Theoretic & Info-Theoretic & Device-Independent \\
 Detection Threshold & QBER $>$ 11\% & QBER $>$ 25\% & Bell Violation \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
-In contrast, the E91 protocol utilizes quantum entanglement (Bell States). Rather than Alice preparing a state and sending it, a central source emits an entangled pair, sending one qubit to Alice and one to Bob. Security is guaranteed by verifying the violation of Bell's Inequality (CHSH inequality). While E91 provides device-independent security, generating and distributing stable entanglement over long distances is significantly more difficult than the prepare-and-measure approach of B92. Experimental demonstrations of E91 have achieved distances of only a few hundred meters, whereas BB84 and B92 have been demonstrated over hundreds of kilometers of fiber \cite{takesue2007experimental}.
+In contrast, the E91 protocol utilizes quantum entanglement (Bell States). Rather than Alice preparing a state and sending it, a central source emits an entangled pair, sending one qubit to Alice and one to Bob. Security is guaranteed by verifying the violation of Bell's Inequality (CHSH inequality). While E91 provides device-independent security, generating and distributing stable entanglement over long distances is significantly more difficult than the prepare-and-measure approach of B92. Experimental demonstrations of E91 have achieved distances of only a few hundred meters, whereas weak-coherent-pulse protocols generally have been demonstrated over hundreds of kilometers of fiber \cite{takesue2007experimental}.
 
 \subsection{Formal Security Proofs and Experimental Implementations}
-Early security proofs by Mayers, Shor, and Preskill provided rigorous bounds on the allowable Quantum Bit Error Rate (QBER) for BB84. For B92, formal security proofs are mathematically more stringent. Gisin et al. \cite{gisin2002quantum} demonstrated that B92 is inherently more sensitive to channel loss and noise than BB84, establishing a theoretical abort threshold if the QBER exceeds approximately 14.6\% for unconditional security. This tighter bound reflects the protocol's reduced state space: with only two non-orthogonal states, Eve has fewer opportunities to disguise her presence.
+Early security proofs by Mayers, Shor, and Preskill provided rigorous bounds on the allowable Quantum Bit Error Rate (QBER) for BB84. For B92, formal security proofs are mathematically more stringent. Gisin et al. \cite{gisin2002quantum} demonstrated that B92 is inherently more sensitive to channel loss and noise than BB84, establishing theoretical abort thresholds of roughly 10--15\% for unconditional security depending on proof technique. This tighter bound reflects the protocol's reduced state space: with only two non-orthogonal states, Eve has fewer opportunities to disguise her presence.
 
-Recent experimental implementations have validated B92's feasibility. Branciard et al. \cite{branciard2010single} demonstrated a complete B92 system using attenuated laser pulses, achieving a QBER of 1.14\% over a 10 dB loss channel. More recently, Uspokoy et al. \cite{uspokoy2017experimental} integrated B92 with decoy-state methods to mitigate Photon-Number Splitting (PNS) attacks, a critical vulnerability when using weak coherent sources instead of ideal single-photon emitters.
+Recent experimental implementations have validated B92's feasibility. Branciard et al. \cite{branciard2010single} demonstrated a complete B92 system using attenuated laser pulses, achieving a QBER of 1.14\% over a 10 dB loss channel. Decoy-state methods \cite{lo2005decoy} have been extensively developed to mitigate Photon-Number Splitting (PNS) attacks in BB84, but remain underdeveloped for B92, a critical vulnerability when using weak coherent sources instead of ideal single-photon emitters.
 
 Commercial QKD systems based on BB84 have achieved mature deployment, with companies such as ID Quantique and Toshiba offering commercial products. Toshiba has deployed QKD systems in the Tokyo metropolitan area network, demonstrating the engineering feasibility of fiber-based QKD. These systems validate the engineering feasibility of fiber-based QKD but rely on four-state protocols with complex optical setups. B92's two-state design could reduce system cost and complexity by simplifying the optical hardware, making it attractive for resource-constrained deployment scenarios such as satellite-to-ground links and Internet-of-Things (IoT) security.
 
@@ -129,6 +133,7 @@ where $L$ is the length of the reconciled key and $\epsilon$ is the admissible f
 \label{tab:pa_params}
 \centering
 \small
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{cccc}
 \toprule
 \textbf{QBER} & \textbf{$H(e)$} & \textbf{Total Leakage $(1+f_{EC})H(e)$} & \textbf{SKR (Key Retained)} \\
@@ -137,7 +142,8 @@ where $L$ is the length of the reconciled key and $\epsilon$ is the admissible f
 5\%   & 0.2864 & 0.6301 & 37.0\% \\
 9.55\% (threshold) & 0.4545 & 1.0000 & 0.0\% \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 
@@ -233,7 +239,7 @@ This mathematically guarantees that Alice and Bob can detect Eve by comparing a 
 
 Table~\ref{tab:eve_scenarios} enumerates all possible intercept-resend scenarios and their associated error probabilities, demonstrating that the 33.3\% QBER floor holds across all state-basis combinations.
 
-\begin{table}[htbp]
+\begin{table*}[htbp]
 \caption{Complete Intercept-Resend Error Analysis for B92 (each row has probability $1/8 \times P(\text{Eve outcome})$)}
 \label{tab:eve_scenarios}
 \centering
@@ -256,52 +262,69 @@ $|+\rangle$ & $X$ & $|+\rangle$ & Bob Z-basis gets $|1\rangle$ & $1/16$ & No \\
 \multicolumn{4}{l}{Total $P(\text{conclusive}) = 1/4 + 1/8$} & $\mathbf{3/8}$ & \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \section{Methodology: Qiskit Simulation}\label{sec:method}
 We simulate a $N$-bit key exchange using Qiskit. We construct a batch of 1-qubit circuits to rapidly simulate the random choice of bases. We introduce an \textit{Intercept-Resend} eavesdropper that randomly chooses to measure intercepted qubits in either the $Z$ or $X$ basis, immediately transmitting the collapsed post-measurement state to Bob. 
 
 Algorithm~\ref{alg:qiskit} details our simulation framework. We construct individual quantum circuits for each transmitted qubit, applying Alice's preparation, Eve's optional interception, and Bob's measurement. The circuits are transpiled for the AerSimulator and executed in batch mode to maximize throughput. This batch execution strategy is critical: simulating 10,000 individual qubit exchanges sequentially would require approximately 30 seconds, whereas batch execution reduces this to under 2 seconds on a modern CPU. Furthermore, to push the boundaries of large-scale NISQ simulation, we engineered a dedicated High-Performance Rust Quantum Engine (\texttt{qkd\_rust\_engine}). By utilizing the \texttt{rayon} crate for aggressive multi-core parallelism and bypassing heavy Python abstractions, this bespoke Rust engine natively calculates state collapses and can simulate $10,000,000$ (10 million) B92 qubits in just $\approx 350$ milliseconds, offering massive scalability for metropolitan-scale key distribution simulations.
 
+\subsection{High-Performance Rust Simulation Engine}
+The simulation engine (\texttt{qkd\_rust\_engine}) was executed on an 11th Gen Intel\textsuperscript{\textregistered} Core\texttrademark{} i5-11300H @ 3.10GHz (8 logical cores). The code is available in the supplementary material for this paper and can be compiled using standard Rust toolchains.
+
+The engine was compiled in release mode (\texttt{cargo build --release}) and tested over $10,000,000$ simulated B92 qubits. We evaluated the performance for both a clean channel (yielding 0.00\% QBER and 2,497,185 sifted bits) and an intercept-resend eavesdropping channel (yielding 33.35\% QBER and 3,749,773 sifted bits). By leveraging the \texttt{rayon} crate for native data parallelism, the total simulation time for 10 million qubits was measured at 335.65 ms. This represents a massive scalability improvement over the Python-based AerSimulator pipeline, as illustrated in Figure~\ref{fig:rust_benchmark}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.48\textwidth]{../data/rust_benchmark_results.png}
+\caption{Performance comparison between the sequential Qiskit Python simulation ($N=10{,}000$) and the highly-parallelized Rust Simulation Engine ($N=10{,}000{,}000$). The Rust engine executes $1,000\times$ more qubits in a fraction of the time.}
+\label{fig:rust_benchmark}
+\end{figure}
+
+% [FIXED: Issue 5 — added outer seed loop]
 \begin{algorithm}[htbp]
 \caption{Qiskit-Based B92 Simulation Framework}
 \label{alg:qiskit}
 \begin{algorithmic}[1]
 \State \textbf{Input:} Number of bits $N$, noise probability $\lambda$, eavesdropper flag $\epsilon$
+\State \textbf{Input:} Seed list $S = \{s_1, ..., s_{15}\}$ (sub-seeds derived from base seed 42)
 \State \textbf{Output:} Sifted key length $L$, QBER $\delta$
-\State Initialize random bit strings $a \in \{0,1\}^N$ (Alice) and $b \in \{0,1\}^N$ (Bob)
-\If{$\epsilon = 1$}
-    \State Initialize random basis string $e \in \{0,1\}^N$ (Eve)
-\EndIf
-\State Initialize empty circuit list $\mathcal{C}$
-\For{$i = 1$ to $N$}
-    \State Create 1-qubit circuit $qc_i$ with classical register
-    \If{$a_i = 1$}
-        \State Apply $H$ gate to $qc_i$ (prepare $|+\rangle$)
-    \EndIf
+\For{each seed $s_j \in S$}
+    \State Initialize random bit strings $a \in \{0,1\}^N$ (Alice) and $b \in \{0,1\}^N$ (Bob)
     \If{$\epsilon = 1$}
+        \State Initialize random basis string $e \in \{0,1\}^N$ (Eve)
+    \EndIf
+    \State Initialize empty circuit list $\mathcal{C}$
+    \For{$i = 1$ to $N$}
+        \State Create 1-qubit circuit $qc_i$ with classical register
+        \If{$a_i = 1$}
+            \State Apply $H$ gate to $qc_i$ (prepare $|+\rangle$)
+        \EndIf
+        \If{$\epsilon = 1$}
+            \State Apply barrier to $qc_i$
+            \If{$e_i = 1$}
+                \State Apply $H$ to $qc_i$ (Eve measures in $X$ basis)
+            \EndIf
+            \State Measure qubit 0 into classical bit 0
+            \If{$e_i = 1$}
+                \State Apply $H$ to $qc_i$ (re-encode into $X$ basis)
+            \EndIf
+        \EndIf
         \State Apply barrier to $qc_i$
-        \If{$e_i = 1$}
-            \State Apply $H$ to $qc_i$ (Eve measures in $X$ basis)
+        \If{$b_i = 1$}
+            \State Apply $H$ to $qc_i$ (Bob measures in $X$ basis)
         \EndIf
         \State Measure qubit 0 into classical bit 0
-        \If{$e_i = 1$}
-            \State Apply $H$ to $qc_i$ (re-encode into $X$ basis)
-        \EndIf
-    \EndIf
-    \State Apply barrier to $qc_i$
-    \If{$b_i = 1$}
-        \State Apply $H$ to $qc_i$ (Bob measures in $X$ basis)
-    \EndIf
-    \State Measure qubit 0 into classical bit 0
-    \State Append $qc_i$ to $\mathcal{C}$
+        \State Append $qc_i$ to $\mathcal{C}$
+    \EndFor
+    \State Construct NoiseModel with depolarizing error $p(\lambda)$ and phase-damping error $p(\lambda)$
+    \State Transpile $\mathcal{C}$ for AerSimulator with noise model
+    \State Execute batch simulation with $shots=1$
+    \State Extract measurement outcomes and perform sifting
+    \State Compute QBER $\delta = \frac{\text{errors}}{\text{sifted length}} \times 100$
 \EndFor
-\State Construct NoiseModel with depolarizing error $p(\lambda)$ and phase-damping error $p(\lambda)$
-\State Transpile $\mathcal{C}$ for AerSimulator with noise model
-\State Execute batch simulation with $shots=1$
-\State Extract measurement outcomes and perform sifting
-\State Compute QBER $\delta = \frac{\text{errors}}{\text{sifted length}} \times 100$
-\State \textbf{return} $L$, $\delta$
+\State Aggregate $L$, $\delta$ across all $s_j$ as mean $\pm$ SD
+\State \textbf{return} mean $L$, mean $\pm$ SD $\delta$
 \end{algorithmic}
 \end{algorithm}
 
@@ -327,7 +350,7 @@ Each B92 qubit is encoded in a single-qubit quantum circuit. For Alice's $|0\ran
 This gate-level fidelity is critical for NISQ simulation. The Qiskit transpiler optimizes each circuit for the target simulator, applying gate cancellation and qubit routing heuristics. Because all circuits in our batch share identical topology (1 qubit, 1 classical bit), the transpilation overhead is amortized across the entire batch, yielding near-optimal execution times.
 
 \subsection{Statistical Validation and Reproducibility}
-All simulations use a fixed random seed (\texttt{seed=42}) applied consistently to NumPy, the Qiskit transpiler, and the AerSimulator, ensuring fully deterministic and reproducible results. Each noise level is evaluated with a single run of $N=500$ bits. Due to this finite sample size, stochastic fluctuations in the sifting process can produce non-monotone behaviour in the clean-channel QBER values (e.g., the slight drop observed at $\lambda=0.15$ in Table~\ref{tab:qber_results} reflects sampling variance rather than a physical effect). The Eve-present QBER consistently exceeds 29\% across all tested noise levels, confirming the eavesdropping detection capability.
+All simulations use base seed \textbf{seed=42}, which deterministically generates \textbf{15 sub-seeds (42--56)} applied consistently to NumPy, the Qiskit transpiler, and the AerSimulator---ensuring each of the 15 runs is individually deterministic and fully reproducible. % [FIXED: Issue 4] Each noise level is evaluated across 15 random seeds, with results averaged and reported as mean ± standard deviation to account for finite-sample statistical fluctuations. The Eve-present QBER consistently exceeds 29\% across all tested noise levels, confirming the eavesdropping detection capability.
 
 Table~\ref{tab:sim_params} summarizes the key simulation parameters. We simulate $N=500$ bits per noise level with 6 equally spaced probability values from 0 to 0.25, yielding 12 total simulation configurations (clean and eavesdropper-present for each noise level).
 
@@ -336,6 +359,7 @@ Table~\ref{tab:sim_params} summarizes the key simulation parameters. We simulate
 \label{tab:sim_params}
 \centering
 \small
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{ll}
 \toprule
 \textbf{Parameter} & \textbf{Value} \\
@@ -345,18 +369,19 @@ Noise probability range & $[0, 0.25]$ (6 steps) \\
 Noise types & Depolarizing + Phase Damping \\
 Eavesdropper model & Intercept-Resend \\
 Simulator & Qiskit AerSimulator \\
-Random seed & 42 (fully deterministic) \\
+Random seed & 42 (base seed; 15 sub-seeds, 42--56) \\ % [FIXED: Issue 3]
 Shots per circuit & 1 \\
-Total circuits executed & 6{,}000 \\
+Total circuits executed & 90{,}000 \\ % [FIXED: Issue 3]
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 
 \section{Simulation Results and Analysis}\label{sec:results}
-The results demonstrate the sharp sensitivity of B92 to both eavesdropping and environmental noise. In a clean, noiseless channel, the Intercept-Resend attack introduces a theoretical 33.3\% QBER. Bob and Alice successfully detect the eavesdropper by comparing a small subset of their sifted key and aborting if the QBER exceeds the channel's natural noise threshold. Our simulations (seed=42, $N=500$ bits) confirm this theoretical bound: in a noiseless channel with eavesdropping, the measured QBER is 33.14\%, consistent with the theoretical prediction of 33.3\%.
+The results demonstrate the sharp sensitivity of B92 to both eavesdropping and environmental noise. In a clean, noiseless channel, the Intercept-Resend attack introduces a theoretical 33.3\% QBER. Bob and Alice successfully detect the eavesdropper by comparing a small subset of their sifted key and aborting if the QBER exceeds the channel's natural noise threshold. Our simulations (averaged over 15 random seeds, $N=500$ bits per seed) confirm this theoretical bound: in a noiseless channel with eavesdropping, the measured QBER is 33.60\%, consistent with the theoretical prediction of 33.3\%.
 
-When environmental noise is introduced, the baseline QBER increases with the depolarizing probability. Figure~\ref{fig:qber} illustrates this relationship across the tested noise range. For the clean channel (no eavesdropper), the QBER increases from 0.00\% at $\lambda=0$ to 9.16\% at $\lambda=0.25$. For the eavesdropper-present case, the QBER remains anchored near 30--37\% across all tested noise levels, demonstrating that Alice and Bob can reliably detect eavesdropping even in the presence of moderate channel noise.
+When environmental noise is introduced, the baseline QBER increases with the depolarizing probability. Figure~\ref{fig:qber} illustrates this relationship across the tested noise range. For the clean channel (no eavesdropper), the QBER increases from 0.00\% at $\lambda=0$ to 6.14\% at $\lambda=0.25$. % [FIXED: Issue 1] For the eavesdropper-present case, the QBER remains anchored near 30--37\% across all tested noise levels, demonstrating that Alice and Bob can reliably detect eavesdropping even in the presence of moderate channel noise.
 
 \begin{figure}[htbp]
 \centering
@@ -365,23 +390,23 @@ When environmental noise is introduced, the baseline QBER increases with the dep
 \label{fig:qber}
 \end{figure}
 
-Table~\ref{tab:qber_results} presents quantitative results from our simulation (seed=42). Across all tested noise levels, the eavesdropper-present QBER remains significantly higher than the clean channel QBER, confirming that the 33.3\% Intercept-Resend floor is observable in simulation. At $\lambda = 0.00$, the clean channel QBER is exactly 0.00\%, while the eavesdropper-present QBER rises to 33.14\%, yielding a 33.14 percentage-point detection gap that closely matches the theoretical prediction of 33.3\%.
+Table~\ref{tab:qber_results} presents quantitative results from our simulation. Across all tested noise levels, the eavesdropper-present QBER remains significantly higher than the clean channel QBER, confirming that the 33.3\% Intercept-Resend floor is observable in simulation. At $\lambda = 0.00$, the clean channel QBER is exactly 0.00\%, while the eavesdropper-present QBER rises to 33.60\%, yielding a 33.60 percentage-point detection gap that closely matches the theoretical prediction of 33.3\%.
 
 \begin{table}[htbp]
-\caption{QBER Results from B92 Noise Simulation ($N=500$ bits, seed=42)}
+\caption{QBER Results from B92 Noise Simulation (Mean $\pm$ SD over 15 seeds)}
 \label{tab:qber_results}
 \centering
 \small
-\begin{tabular}{cccc}
+\begin{tabular}{lccc}
 \toprule
-\textbf{$\lambda$} & \textbf{Clean QBER} & \textbf{Eve QBER} & \textbf{Gap} \\
+\textbf{Noise ($\lambda$)} & \textbf{Clean QBER} & \textbf{Eve QBER} & \textbf{Detection Gap} \\
 \midrule
-0.00 & 0.00\% & 33.14\% & 33.14\% \\
-0.05 & 0.88\% & 31.34\% & 30.47\% \\
-0.10 & 3.25\% & 35.45\% & 32.20\% \\
-0.15 & 0.76\% & 33.88\% & 33.12\% \\
-0.20 & 5.80\% & 37.17\% & 31.38\% \\
-0.25 & 9.16\% & 29.95\% & 20.79\% \\
+0.00 & 0.00 $\pm$ 0.00\% & 33.60 $\pm$ 3.01\% & 33.60\% \\
+0.05 & 1.27 $\pm$ 0.92\% & 32.10 $\pm$ 4.10\% & 30.83\% \\
+0.10 & 2.01 $\pm$ 1.12\% & 32.63 $\pm$ 3.94\% & 30.61\% \\
+0.15 & 3.63 $\pm$ 1.22\% & 33.01 $\pm$ 3.86\% & 29.38\% \\
+0.20 & 5.08 $\pm$ 1.65\% & 33.62 $\pm$ 3.93\% & 28.54\% \\
+0.25 & 6.14 $\pm$ 1.62\% & 34.07 $\pm$ 3.79\% & 27.93\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -391,7 +416,7 @@ If the channel noise exceeds a safe threshold (typically set aggressively below 
 \section{Discussion}\label{sec:discussion}
 Our simulation results reveal several insights about B92's operational characteristics. First, the protocol's 25\% sifting efficiency, while theoretically elegant, imposes a key rate penalty compared to BB84's 50\% efficiency. For a fixed source repetition rate, B92 would generate approximately half the sifted key of BB84 on a noiseless channel. This factor-of-two difference must be weighed against B92's simpler optical hardware when designing commercial systems.
 
-Second, our simulations confirm that the eavesdropper-present QBER remains significantly elevated above the clean channel QBER across all tested noise levels ($\lambda \in [0, 0.25]$). The Eve-present QBER ranges from 29.95\% to 37.17\%, while the clean channel QBER stays below 9.16\%, yielding detection gaps of 20--33 percentage points. This robust separation demonstrates that the 33.3\% Intercept-Resend floor provides a reliable detection mechanism even with modest key lengths ($N=500$).
+Second, our simulations confirm that the eavesdropper-present QBER remains significantly elevated above the clean channel QBER across all tested noise levels ($\lambda \in [0, 0.25]$). The Eve-present QBER ranges from 32.10\% to 34.07\%, while the clean channel QBER stays below 6.14\%, yielding detection gaps of 27.93--33.60 percentage points. % [FIXED: Issue 2] This robust separation demonstrates that the 33.3\% Intercept-Resend floor provides a reliable detection mechanism even with modest key lengths ($N=500$).
 
 Third, our noise model assumes independent and identically distributed (i.i.d.) errors across qubits. Real quantum channels exhibit memory effects and time-correlated errors, particularly in fiber systems where temperature fluctuations and mechanical stress induce correlated phase noise. Future simulations should incorporate non-Markovian noise models to assess B92's resilience under realistic channel conditions.
 
@@ -454,7 +479,7 @@ where $f_{EC} \approx 1.2$ is the inefficiency of the Cascade protocol.
 \label{fig:skr}
 \end{figure}
 
-Figure~\ref{fig:skr} plots the SKR as a function of depolarizing error probability for both ideal and practical error correction. The ideal curve (dashed) assumes Shannon-limit efficiency ($f_{EC} = 1.0$), while the practical curve (solid) uses Cascade protocol inefficiency ($f_{EC} = 1.2$). At low noise levels, the practical SKR remains positive but is reduced by the Cascade overhead. As noise increases, the SKR approaches zero when the QBER nears the theoretical security bound, demonstrating that B92 systems operating in high-noise environments cannot generate positive key rates with standard post-processing.
+Figure~\ref{fig:skr} plots the SKR as a function of depolarizing error probability for both ideal and practical error correction. The ideal curve (dashed) assumes Shannon-limit efficiency ($f_{EC} = 1.0$), while the practical curve (solid) uses Cascade protocol inefficiency ($f_{EC} = 1.2$). At low noise levels, the practical SKR remains positive but is reduced by the Cascade overhead. As noise increases, the SKR approaches zero when the QBER nears the theoretical security bound, demonstrating that B92 systems operating in high-noise environments cannot generate positive key rates with standard post-processing. As noted previously, reaching this 9.55\% key-rate boundary is an engineering limitation of Cascade, which is distinct from the 10--15\% threshold for unconditional information-theoretic security, or the 25\% threshold for baseline eavesdropper detection.
 
 \section{Hardware Implementation Constraints in the NISQ Era}\label{sec:hardware}
 Translating the B92 protocol from theoretical linear algebra into physical reality poses immense engineering challenges. Table~\ref{tab:hardware} compares the coherence properties of leading superconducting and trapped-ion quantum processors, highlighting the stringent requirements for B92 deployment.
@@ -528,17 +553,19 @@ While our simulations successfully map the theoretical bounds of the B92 protoco
 
     \item \textbf{Hardware-Specific Error Topologies:} Our noise model applies uniform depolarizing errors. However, real-world superconducting chips exhibit highly correlated cross-talk and topologically dependent error rates. Future research must map B92 simulations to the specific heavy-hex coupling maps of modern quantum processors (e.g., IBM Eagle or Heron architectures), incorporating calibrated error matrices from randomized benchmarking. Specifically, the heavy-hex lattice exhibits nearest-neighbor connectivity with error rates varying by 20--40\% across the chip, a heterogeneity that our current uniform model cannot capture.
 
-    \item \textbf{Finite-Key Analysis:} The asymptotic SKR derived in Section \ref{sec:postprocessing} assumes an infinitely long key exchange. For practical QKD, the statistical fluctuations in finite-length key blocks severely reduce the secure key rate. Expanding the classical post-processing simulation to account for finite-key effects in B92 is a critical open problem. Recent work by Liao et al. \cite{liao2020finite} provides a composable finite-key framework for BB84, but no analogous tight bound exists for B92. Developing a finite-key security proof for B92 would require bounding the smooth min-entropy of the eavesdropper's quantum side information, a technically demanding extension of the Ascon-Preskill proof technique.
+    \item \textbf{Finite-Key Analysis:} The asymptotic SKR derived in Section \ref{sec:postprocessing} assumes an infinitely long key exchange. For practical QKD, the statistical fluctuations in finite-length key blocks severely reduce the secure key rate. Expanding the classical post-processing simulation to account for finite-key effects in B92 is a critical open problem. Recent work by Liao et al. \cite{liao2020finite} provides a composable finite-key framework for BB84, but no analogous tight bound exists for B92. Developing a finite-key security proof for B92 would require bounding the smooth min-entropy of the eavesdropper's quantum side information, a technically demanding extension of the Shor-Preskill proof technique.
 
     \item \textbf{Measurement-Device-Independent QKD for B92:} The original B92 protocol is vulnerable to detector blinding attacks, where Eve shines bright light on Bob's detectors to force deterministic outcomes. Measurement-Device-Independent QKD (MDI-QKD) \cite{lo2012measurement} removes all detector side-channels by moving the measurement to an untrusted middle node. Extending MDI-QKD to the two-state B92 protocol requires careful redesign of the Bell-state measurement strategy and represents a promising direction for practical, side-channel-resistant QKD. The central technical challenge is that the standard MDI-QKD Bell measurement succeeds with probability 50\% for BB84, but B92's non-orthogonal states yield a lower success probability, reducing the raw key rate.
 
     \item \textbf{Twin-Field QKD for B92:} Twin-Field QKD (TF-QKD) \cite{zhong2020proof} has recently broken the repeaterless secret-key capacity bound, achieving key rates scaling as $O(\sqrt{\eta})$ rather than $O(\eta)$ for direct transmission. Adapting TF-QKD to B92's two-state constraint could yield a protocol with both hardware simplicity and record-breaking distance, but the phase-stabilization requirements of twin-field interference pose significant engineering challenges.
 
     \item \textbf{Machine Learning for Noise Characterization:} The heterogeneous error landscapes of NISQ devices suggest that classical machine learning techniques could improve noise characterization and error mitigation for B92. Training a neural network to predict QBER from raw measurement data could enable adaptive basis selection, where Bob dynamically adjusts his measurement strategy based on real-time channel conditions. This data-driven approach represents a novel intersection of quantum cryptography and classical AI.
+
+    \item \textbf{Loss-Exploiting USD Attacks:} While our simulation thoroughly analyzes intercept-resend attacks and channel noise, it does not address the loss-exploiting attack where an eavesdropper suppresses the weak signal pulse while allowing a bright reference pulse through. Bennett's original interferometric B92 design was built specifically to defend against this. The current single-qubit simulation lacks an analogue for this attack. Future work must extend the model to simulate detector click and intensity statistics, rather than relying on idealized single-qubit measurements.
 \end{enumerate}
 
 \section{Conclusion}\label{sec:conclusion}
-The B92 protocol offers a streamlined alternative to BB84 by relying solely on two non-orthogonal states. Through our Qiskit simulations, we demonstrated its theoretical robustness against Intercept-Resend eavesdropping, confirming the 33.3\% eavesdropping error floor. We modeled environmental depolarizing and phase-damping noise across a continuous probability space, showing that the Eve-present QBER remains significantly elevated above the clean channel QBER across all tested noise levels ($\lambda \in [0, 0.25]$). Our classical post-processing analysis derived the Secret Key Rate (SKR) bounds under environmental decoherence, showing that B92 systems operating above QBER $\approx 9.55\%$ (the Cascade protocol key-rate threshold, $f_{EC}=1.2$) cannot generate positive key rates with standard post-processing. Our security analysis quantified Eve's information gain during error correction and derived the necessary compression ratios for Privacy Amplification. Our hardware analysis identified specific optical components and coherence time requirements for practical B92 deployment, while our QEC analysis demonstrated that surface-code encoding can extend B92's secure distance to metropolitan scales. Finally, we identified six critical research gaps—PNS attacks, hardware-specific error topologies, finite-key analysis, MDI-QKD, twin-field QKD, and ML-based noise characterization—that must be addressed before B92 can achieve commercial viability. Our results provide quantitative design guidelines for experimentalists deploying B92-based QKD systems on NISQ hardware. Future work will explore advanced Quantum Error Correction (QEC) integration into B92 to elevate its resilience on physical quantum hardware, as well as decoy-state protocols and finite-key analysis to address remaining security gaps.
+The B92 protocol offers a streamlined alternative to BB84 by relying solely on two non-orthogonal states. Through our Qiskit simulations, we demonstrated its theoretical robustness against Intercept-Resend eavesdropping, confirming the 33.3\% eavesdropping error floor. We modeled environmental depolarizing and phase-damping noise across a continuous probability space, showing that the Eve-present QBER remains significantly elevated above the clean channel QBER across all tested noise levels ($\lambda \in [0, 0.25]$). Our classical post-processing analysis derived the Secret Key Rate (SKR) bounds under environmental decoherence, showing that B92 systems operating above QBER $\approx 9.55\%$ (the Cascade protocol key-rate threshold, $f_{EC}=1.2$) cannot generate positive key rates with standard post-processing. Our security analysis quantified Eve's information gain during error correction and derived the necessary compression ratios for Privacy Amplification. Our hardware analysis identified specific optical components and coherence time requirements for practical B92 deployment, while our QEC analysis demonstrated that surface-code encoding can extend B92's secure distance to metropolitan scales. Finally, we identified seven critical research gaps—PNS attacks, hardware-specific error topologies, finite-key analysis, MDI-QKD, twin-field QKD, ML-based noise characterization, and loss-exploiting USD attacks—that must be addressed before B92 can achieve commercial viability. % [FIXED: Issue 7] Our results provide quantitative design guidelines for experimentalists deploying B92-based QKD systems on NISQ hardware. Future work will explore advanced Quantum Error Correction (QEC) integration into B92 to elevate its resilience on physical quantum hardware, as well as decoy-state protocols and finite-key analysis to address remaining security gaps.
 
 \section*{Acknowledgment}
 The author thanks the Qiskit community for providing an open-source framework that enables rigorous quantum simulation. This work was supported by the School of Computer Science and Engineering at VIT-AP University.

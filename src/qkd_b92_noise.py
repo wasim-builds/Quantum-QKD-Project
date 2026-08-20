@@ -100,33 +100,51 @@ def simulate_b92_batch(num_bits: int, noise_prob: float, eve_present: bool) -> t
 
 if __name__ == "__main__":
     noise_levels = np.linspace(NOISE_MIN, NOISE_MAX, N_LEVELS)
-    qber_clean   = []
-    qber_eve     = []
+    qber_clean_means = []
+    qber_clean_stds  = []
+    qber_eve_means   = []
+    qber_eve_stds    = []
 
-    print(f"[*] B92 Noise Simulation (N={N_BITS} bits/level, {N_LEVELS} levels, seed={SEED})")
+    NUM_SEEDS = 15
+
+    print(f"[*] B92 Noise Simulation (N={N_BITS} bits/level, {N_LEVELS} levels, {NUM_SEEDS} seeds)")
     print(f"    Noise range: [{NOISE_MIN}, {NOISE_MAX}]")
     print("=" * 70)
-    print(f"  {'lambda':>8}  {'Clean QBER':>12}  {'Eve QBER':>12}  {'Gap':>10}")
-    print("  " + "-" * 56)
+    print(f"  {'lambda':>8}  {'Clean QBER (Mean±SD)':>22}  {'Eve QBER (Mean±SD)':>20}  {'Gap':>10}")
+    print("  " + "-" * 66)
 
     for p in noise_levels:
-        _, q_c = simulate_b92_batch(num_bits=N_BITS, noise_prob=p, eve_present=False)
-        _, q_e = simulate_b92_batch(num_bits=N_BITS, noise_prob=p, eve_present=True)
-        qber_clean.append(q_c)
-        qber_eve.append(q_e)
-        print(f"  {p:>8.2f}  {q_c:>11.2f}%  {q_e:>11.2f}%  {q_e - q_c:>9.2f}%")
+        q_c_list = []
+        q_e_list = []
+        for seed_idx in range(NUM_SEEDS):
+            # We vary the seed slightly for each run to get variance
+            np.random.seed(SEED + seed_idx)
+            _, q_c = simulate_b92_batch(num_bits=N_BITS, noise_prob=p, eve_present=False)
+            _, q_e = simulate_b92_batch(num_bits=N_BITS, noise_prob=p, eve_present=True)
+            q_c_list.append(q_c)
+            q_e_list.append(q_e)
+            
+        mean_c, std_c = np.mean(q_c_list), np.std(q_c_list)
+        mean_e, std_e = np.mean(q_e_list), np.std(q_e_list)
+        
+        qber_clean_means.append(mean_c)
+        qber_clean_stds.append(std_c)
+        qber_eve_means.append(mean_e)
+        qber_eve_stds.append(std_e)
+        
+        print(f"  {p:>8.2f}  {mean_c:>12.2f}±{std_c:<6.2f}%  {mean_e:>10.2f}±{std_e:<6.2f}%  {mean_e - mean_c:>9.2f}%")
 
     print("=" * 70)
 
     # --- Plot ---
     plt.figure(figsize=(10, 6))
-    plt.plot(noise_levels, qber_clean, marker='o', label='No Eavesdropper (Clean Channel)', color='steelblue')
-    plt.plot(noise_levels, qber_eve,   marker='s', color='crimson', label='Intercept-Resend Eavesdropper')
+    plt.errorbar(noise_levels, qber_clean_means, yerr=qber_clean_stds, marker='o', label='No Eavesdropper (Clean Channel)', color='steelblue', capsize=4)
+    plt.errorbar(noise_levels, qber_eve_means, yerr=qber_eve_stds, marker='s', color='crimson', label='Intercept-Resend Eavesdropper', capsize=4)
     plt.axhline(y=33.33, color='darkorange', linestyle='--', label='Theoretical Eve QBER Floor (33.3%)')
     plt.axhline(y=25.0,  color='black',      linestyle=':',  label='Abort Threshold (25%)')
     plt.fill_between(noise_levels, 25.0, 100, color='red', alpha=0.05)
 
-    plt.title('B92 QKD: QBER vs. Channel Noise (N=500 bits, seed=42)', fontsize=14)
+    plt.title(f'B92 QKD: QBER vs. Channel Noise (N={N_BITS} bits, averaged over {NUM_SEEDS} seeds)', fontsize=14)
     plt.xlabel('Depolarizing / Phase-Damping Error Probability ($\\lambda$)', fontsize=12)
     plt.ylabel('Quantum Bit Error Rate (QBER %)', fontsize=12)
     plt.legend()
